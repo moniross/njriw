@@ -1,24 +1,27 @@
 const axios = require('axios');
 
-module.exports = async function (req, res) {
-  if (req.method === 'POST') {
+exports.handler = async function(event, context) {
+  if (event.httpMethod === 'POST') {
     try {
-      const { choice } = req.body;
-      
-      const response = await axios.post(
-        `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
-        {
-          chat_id: process.env.TELEGRAM_CHAT_ID,
-          text: `User choice: ${choice}`,
-        }
-      );
-      
-      return res.status(200).json({ success: true });
+      const { choice } = JSON.parse(event.body);
+      const response = await axios.post(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        chat_id: process.env.TELEGRAM_CHAT_ID,
+        text: `User choice: ${choice}`
+      });
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ success: true })
+      };
     } catch (error) {
-      return res.status(500).json({ error: error.message });
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: error.message })
+      };
     }
   } else {
-    res.setHeader('Allow', ['POST']);
-    return res.status(405).json({ error: 'Method Not Allowed' });
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: 'Method Not Allowed' })
+    };
   }
 };
